@@ -1632,14 +1632,30 @@ function generateTransfersView(objTransactions, address, filter, unitAssets, isN
 			const lDate = index === 0 ? date : '';
 			const isLastUnit = arr.length - 1 === index;
 			const assetDecimals = transaction.assetDecimals;
-			const fromAddresses = [...new Set(transaction.from.map(t => t.address))];
-			let to = Object.values(transaction.to).filter(t => !fromAddresses.includes(t.address));
+			let fromAddresses = [...new Set(transaction.from.map(t => t.address))];
+			let to = Object.values(transaction.to).filter(t => {
+				if(fromAddresses.length === 1 && fromAddresses[0] === address) {
+					return !fromAddresses.includes(t.address);
+				}
+
+				return true;
+			});
 			let toAddresses = {};
 			if (to.length) {
 				to.forEach(v => {
 					if (!toAddresses[v.address]) {
 						toAddresses[v.address] = 0;
 					}
+
+					// if(fromAddresses.length > 1 && v.address === address) {
+					// 	const input = transaction.from.find(v => v.address === address);
+					//	
+					// 	fromAddresses = fromAddresses.filter(v => v !== address);
+					//	
+					// 	toAddresses[v.address] = v.amount - input.amount;
+					// 	return;
+					// }
+
 					toAddresses[v.address] += v.amount;
 				});
 				for (let key in toAddresses) {
@@ -1653,8 +1669,6 @@ function generateTransfersView(objTransactions, address, filter, unitAssets, isN
 				type = '<span style="color: #50d046">in</span>';
 			}
 
-			console.log(lUnit, index, unit);
-			
 			html += `<tr id="${id}" class="${(isNew ? 'new_transaction' : '')}" style="${isLastUnit ? 'border-bottom: 1px solid #ccc' : ''}">`;
 			html += `<td class="td_in_table">
 				<div class="trunc" style="max-width: 240px; color: #2e81b9" title="${unit}">${lUnit}</div>
