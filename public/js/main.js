@@ -1647,14 +1647,14 @@ function generateTransfersView(objTransactions, address, filter, unitAssets, isN
 						toAddresses[v.address] = 0;
 					}
 
-					// if(fromAddresses.length > 1 && v.address === address) {
-					// 	const input = transaction.from.find(v => v.address === address);
-					//	
-					// 	fromAddresses = fromAddresses.filter(v => v !== address);
-					//	
-					// 	toAddresses[v.address] = v.amount - input.amount;
-					// 	return;
-					// }
+					if(fromAddresses.length > 1 && v.address === address) {
+						const input = transaction.from.find(v => v.address === address);
+
+						fromAddresses = fromAddresses.filter(v => v !== address);
+
+						toAddresses[v.address] = v.amount - input.amount;
+						return;
+					}
 
 					toAddresses[v.address] += v.amount;
 				});
