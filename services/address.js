@@ -247,10 +247,17 @@ async function getAddressInfo(address, filter) {
 	var end = objTransactions ? Object.keys(objTransactions).length < 5 : null;
 	if (isFinite(constants.formulaUpgradeMci)) {
 		const rows = await db.query(
-			"SELECT definition, unit, storage_size, base_aa FROM aa_addresses WHERE address=?",
+			"SELECT aa_addresses.definition, aa_addresses.unit, aa_addresses.storage_size, aa_addresses.base_aa,\n\
+			CASE units.timestamp\n\
+				WHEN 0 THEN " + db.getUnixTimestamp("units.creation_date") + " ELSE units.timestamp\n\
+			END AS definition_timestamp\n\
+			FROM aa_addresses LEFT JOIN units ON aa_addresses.unit=units.unit WHERE aa_addresses.address=?",
 			[address]);
 		if (rows.length === 0)
 			return findRegularDefinition();
+		const definitionTimestamp = rows[0].definition_timestamp === null
+			? null
+			: Number(rows[0].definition_timestamp);
 		
 		let baseAaDefinition;
 		if(rows[0].base_aa) {
@@ -276,6 +283,7 @@ async function getAddressInfo(address, filter) {
 			end,
 			definition: rows[0].definition,
 			definitionUnit: rows[0].unit,
+			definitionTimestamp,
 			newLastInputsROWID,
 			newLastOutputsROWID,
 			storage_size: rows[0].storage_size,
